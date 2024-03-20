@@ -1,6 +1,8 @@
 format ELF64
 public _start
 
+; constants names and values for the sys calls functions. Those values are predefined in Linux
+
 socket = 41
 bind = 49
 listen = 50
@@ -14,13 +16,15 @@ af_inet = 2
 sock_stream = 1
 o_rdonly = 0
 
+; Main function. This is actually executable code
+
 section '.text' executable
 _start:
-mov rdi, af_inet
-mov rsi, sock_stream
+mov rdi, af_inet ; pushing (moving) needed by convention values to registers, preparing them to the system call. 
+mov rsi, sock_stream ; mov is instruction. rdi, rsi, rdx, rax are registers. sock_stream is value to move to the register.
 mov rdx, 0
 mov rax, socket
-syscall
+syscall ; system call
 
 mov r12, rax
 mov rdi, r12
@@ -34,7 +38,7 @@ mov rsi, 10
 mov rax, listen
 syscall
 
-accept_loop:
+accept_loop: ; label so we can return to it with a jump instruction and make a cycle (like while, for, etc)
 
 mov rdi, r12
 mov rsi, 0
@@ -76,21 +80,22 @@ mov rdi, r14
 mov rax, close
 syscall
 
-jmp accept_loop
+jmp accept_loop ; jump instruction to make a cycle
 
 mov rdi, 0
 mov rax, exit
 syscall
 
+; data structures we are using in our program
 section '.data' writeable
-address:
-dw af_inet
-dw 0x901f
+address: ; structure named address
+dw af_inet ; dw is a data type, means Define Word. 2 bytes
+dw 0x901f ; hardcoded port 8080 in hexadecimal and written backwards because of the convention. If you want to change the port you app is listening to: choose port, convert in to hex, change first 2 bytes with last 2 bytes, put here starting from 0x
 dd 0
 dq 0
-buffer:
+buffer: ; buffer with request data
+db 256 dup 0 ; db - Define Byte. 8 bits
+buffer2: ; buffer with response data
 db 256 dup 0
-buffer2:
-db 256 dup 0
-path:
+path: ; path to the HTML file we are serving to the clients
 db 'index.html', 0
